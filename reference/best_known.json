@@ -1,0 +1,18 @@
+{
+ "rtx-3090-24gb": {
+  "prefill_32768": 2848,
+  "decode_C1": 63.7,
+  "prefill_8192": 2619,
+  "prefill_16384": 2783,
+  "prefill_65536": 2807,
+  "decode_C4": 78.9
+ },
+ "intel-arc-pro-b70-32gb": {
+  "prefill_8192": 1022.7,
+  "prefill_16384": 946.4,
+  "prefill_32768": 799.6,
+  "prefill_65536": 603.6,
+  "decode_C1": 32.83
+ },
+ "_note": "medians from the maintainers' protocol sweeps (2026-09-29, omarchy: EPYC 7443P, PCIe 4.0 x16, Samsung 990 Pro). Early exit = < 95 % of these for the same card."
+}
