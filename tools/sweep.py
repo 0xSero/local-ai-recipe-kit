@@ -52,10 +52,38 @@ def rand_ids(n, seed):
     return [rng.randrange(1000, 150000) for _ in range(n)]
 
 
+NONCE = __import__("secrets").token_hex(16)
+PROMPT_HASHES = []
+
+
 def chat_ids(url, i):
-    t = (f"<|im_start|>user\nWrite a detailed, well-structured explanation of {TOPICS[i % len(TOPICS)]} "
+    t = (f"<|im_start|>user\n[cache-bust nonce: {NONCE}-{i}]\nWrite a detailed, well-structured explanation of {TOPICS[i % len(TOPICS)]} "
          f"(variant {i}).<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n")
+    PROMPT_HASHES.append(__import__("hashlib").sha256(t.encode()).hexdigest())
     return tokenize(url, t)
+
+
+class Power:
+    """nvidia-smi power.draw sampled every 0.25 s while active (NVIDIA only; silently absent elsewhere)."""
+    def __init__(self):
+        self.samples, self.on = [], False
+    def __enter__(self):
+        import subprocess
+        self.on = True
+        def run():
+            while self.on:
+                try:
+                    o = subprocess.run(["nvidia-smi", "--query-gpu=power.draw", "--format=csv,noheader,nounits"],
+                                       capture_output=True, text=True, timeout=5).stdout.split()
+                    if o: self.samples.append(sum(float(x) for x in o))
+                except Exception:
+                    pass
+                time.sleep(0.25)
+        self.t = threading.Thread(target=run, daemon=True); self.t.start(); return self
+    def __exit__(self, *a):
+        self.on = False; self.t.join(timeout=6)
+    def mean(self):
+        return round(sum(self.samples) / len(self.samples), 1) if self.samples else None
 
 
 def med(xs):
@@ -135,10 +163,11 @@ def main():
                 "finish": sorted({o["finish"] for o in out if o["finish"]}), "ttft_max": round(max(o["first"] - o["t0"] for o in out), 2)}
 
     for c in list(a.conc) + list(a.high):
-        rounds = [run_conc(c, r) for r in range(a.dec_reps)]
+        with Power() as pw:
+            rounds = [run_conc(c, r) for r in range(a.dec_reps)]
         agg = [r["aggregate"] for r in rounds]
         res["decode"][f"C{c}"] = {"aggregate": med(agg), "per_stream_mean": med([r["per_stream_mean"] for r in rounds]),
-                                   "rounds": rounds}
+                                   "rounds": rounds, "gpu_power_w_mean": pw.mean()}
         print(f"decode C{c}: aggregate {statistics.median(agg):.2f} tok/s, per-stream "
               f"{statistics.median([r['per_stream_mean'] for r in rounds]):.2f}", flush=True)
         save()
@@ -149,6 +178,7 @@ def main():
         r = [run_conc(1, 90 + i, prefix=pre) for i in range(a.dec_reps)]
         res["decode"]["C1@32k"] = {"aggregate": med([x["aggregate"] for x in r]), "rounds": r}
         print(f"decode C1@32k: {statistics.median([x['aggregate'] for x in r]):.2f} tok/s", flush=True)
+    res["prompt_sha256"] = PROMPT_HASHES; res["nonce_prefix"] = NONCE
     res["status"] = "DONE"; res["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S%z"); save()
     if a.update_best:
         for k, g in res.get("gates", {}).items():

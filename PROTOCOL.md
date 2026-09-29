@@ -15,6 +15,10 @@ Tool: `tools/sweep.py`. Same protocol on every card so numbers compare.
    a deliberately slower config (say so in the submission).
 5. **Memory needs** come from `tools/memwatch.sh` (MemAvailable drop and swap at ready and peak; GPU memory) — not from
    file sizes or estimates.
-6. **Quality** first: `tools/score_ref_panel.py` must be inside the target's band before any speed number counts.
+6. **Evidence fields** (LocalMaxxing-compatible): every decode prompt starts with a random cache-bust nonce line and its
+   SHA-256 is recorded; GPU power (nvidia-smi, every 0.25 s) is averaged over each decode tier; time-to-first-token comes
+   from the first streamed token of each request. `tools/to_localmaxxing.py` converts a submission to LocalMaxxing's run
+   fields (it refuses to write personal paths, IPs, tokens, or words you pass with `--private`).
+7. **Quality** first: `tools/score_ref_panel.py` must be inside the target's band before any speed number counts.
 
 Hold nothing else on the GPU or CPU while measuring. Record `nvidia-smi` / `xpu-smi` and `free -g` before the run.
