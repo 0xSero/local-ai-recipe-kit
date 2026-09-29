@@ -99,23 +99,25 @@
     "vendor": "nvidia",
     "index": 0,
     "name": "NVIDIA GeForce RTX 3090",
-    "vram_gb": 25.77,
+    "vram_gb": 24,
     "vram_used_mib": 2226,
     "pci": "00000000:81:00.0",
     "pcie_gen_max": "4",
     "pcie_width_max": "16",
-    "driver": "610.57.04"
+    "driver": "610.57.04",
+    "vram_mib": 24576
    },
    {
     "vendor": "nvidia",
     "index": 1,
     "name": "NVIDIA GeForce RTX 3090",
-    "vram_gb": 25.77,
+    "vram_gb": 24,
     "vram_used_mib": 3,
     "pci": "00000000:C5:00.0",
     "pcie_gen_max": "4",
     "pcie_width_max": "16",
-    "driver": "610.57.04"
+    "driver": "610.57.04",
+    "vram_mib": 24576
    },
    {
     "vendor": "intel",
