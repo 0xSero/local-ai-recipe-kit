@@ -39,12 +39,14 @@ You are helping me run an open-weights model on my own hardware and submit a mea
    and port. Run `tools/memwatch.sh work/memwatch.csv` in the background from *before* the launch until after step 6.
    Wait for `/health`, then send one chat request and show me the answer.
 5. **Correctness**: `python3 tools/score_ref_panel.py --url http://127.0.0.1:<port> --panel
-   reference/qwen3.8-flash-next-exl3-ref-panel.json --out work/panel.json`. The target lists the pass band
+   reference/qwen3.8-flash-next-exl3-ref-panel.json --out work/panel.json` (the panel the target names:
+   `reference/glm-5.3-flash-exl3-ref-panel.json` for the GLM target). The target lists the pass band
    (top-1 agreement and mean KL vs the exllamav3 reference). Outside the band = do not tune speed yet; find the cause.
    If the target claims long context, also run `python3 tools/needle.py --url ... --tokens <per target> --depth 0.8
    --out work/needle.json`.
 6. **Speed, fixed protocol** (`PROTOCOL.md`): `python3 tools/sweep.py --url http://127.0.0.1:<port> --card <card id>
-   --config "<image digest + key env/args>" --out work/sweep.json`. It runs prefill 8k/16k/32k/64k (3 prompts each),
+   --config "<image digest + key env/args>" --out work/sweep.json` (plus the extra flags the target's Benchmark notes
+   give, e.g. `--template glm --prefill 8192 32768` and the `<card>/<target>` best-known key for GLM). It runs prefill 8k/16k/32k/64k (3 prompts each),
    decode at 1-4 concurrent users (natural-length answers), and 1 user at 32k context. It exits early (code 3) if a
    number is more than 5 % below the best known for that card — when that happens, report it and look for the reason
    (another process? thermal throttling? slower PCIe? different config?) before continuing.

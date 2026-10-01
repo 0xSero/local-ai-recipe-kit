@@ -56,9 +56,15 @@ NONCE = __import__("secrets").token_hex(16)
 PROMPT_HASHES = []
 
 
+TEMPLATE = "qwen"
+
+
 def chat_ids(url, i):
-    t = (f"<|im_start|>user\n[cache-bust nonce: {NONCE}-{i}]\nWrite a detailed, well-structured explanation of {TOPICS[i % len(TOPICS)]} "
-         f"(variant {i}).<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n")
+    q = f"[cache-bust nonce: {NONCE}-{i}]\nWrite a detailed, well-structured explanation of {TOPICS[i % len(TOPICS)]} (variant {i})."
+    if TEMPLATE == "glm":  # GLM-5.x chat format, thinking off
+        t = f"[gMASK]<sop><|user|>{q}<|assistant|><think></think>"
+    else:
+        t = f"<|im_start|>user\n{q}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
     PROMPT_HASHES.append(__import__("hashlib").sha256(t.encode()).hexdigest())
     return tokenize(url, t)
 
@@ -105,14 +111,17 @@ def main():
     ap.add_argument("--update-best", action="store_true")
     ap.add_argument("--best", help="best-known JSON for early exit (default reference/best_known.json)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--template", default="qwen", choices=["qwen", "glm"], help="chat format of the decode prompts (target file says which)")
     a = ap.parse_args()
+    global TEMPLATE
+    TEMPLATE = a.template
     bk_path = a.best or os.path.join(HERE, "..", "reference", "best_known.json")
     best_all = json.load(open(bk_path)) if os.path.exists(bk_path) else {}
     best = best_all.get(a.card, {})
     info = json.loads(urllib.request.urlopen(a.url + "/server_info", timeout=30).read())
     ctx_len = int(info.get("context_length") or (info.get("server_args") or {}).get("context_length") or 131072)
     res = {"card": a.card, "config": a.config, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "ctx_len": ctx_len,
-           "protocol": "bench/sweep.py v1", "tol": a.tol, "best_known_before": best,
+           "protocol": "bench/sweep.py v1", "template": a.template, "tol": a.tol, "best_known_before": best,
            "server_args": {k: (info.get("server_args") or info).get(k) for k in
                            ("max_running_requests", "max_total_num_tokens", "chunked_prefill_size", "kv_cache_dtype",
                             "context_length", "mem_fraction_static", "max_mamba_cache_size")},
