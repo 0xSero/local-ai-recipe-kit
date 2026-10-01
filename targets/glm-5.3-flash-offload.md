@@ -26,12 +26,12 @@
 
 ## Known-good config
 ### RTX 3090 (sm_86) — `rtx-3090-24gb`
-- Image: `ghcr.io/0xsero/glm53-flash-offload@sha256:1159044a73d91804c25ffa0851d1668518220c631e2efd4e904b7cc0578a7e39` (glm53-flash-offload [`c4b9160`](https://github.com/0xSero/glm53-flash-offload/tree/c4b9160bdbd3bdbda9b2d50b763332c8580280fb), exllamav3 v1.5.1 for
-  sm_86; built and attested by github.com/0xSero/local-ai-images `release-image`).
+- Image: `ghcr.io/0xsero/glm53-flash-offload@sha256:bb633b0bcb85573ad40b6c408af5e1036ae062c593e42479f4e4d2ab521e551d` (glm53-flash-offload [`fe97bcf`](https://github.com/0xSero/glm53-flash-offload/tree/fe97bcf846347d035859a0610cebbb707fa36caa), exllamav3 v1.5.1 for
+  sm_86; built from local-ai-images main by `release-image` and attested, run 36868783920).
 - Launch (bridge network; the image entrypoint holds the defaults below):
   ```
   docker run -d --name glm53 --gpus '"device=0"' --ulimit memlock=-1 --shm-size 16g -p 30000:30000 \
-    -v <models dir>/GLM-5.3-Flash-exl3-3.05bpw:/models ghcr.io/0xsero/glm53-flash-offload@sha256:1159044a73d91804c25ffa0851d1668518220c631e2efd4e904b7cc0578a7e39
+    -v <models dir>/GLM-5.3-Flash-exl3-3.05bpw:/models ghcr.io/0xsero/glm53-flash-offload@sha256:bb633b0bcb85573ad40b6c408af5e1036ae062c593e42479f4e4d2ab521e551d
   ```
   Server argv (from the entrypoint): `python3 /opt/glm53/glm53/serve.py -m /models -cs 131072 --max-batch-size 8
   -chunk_size 8192 -ambs 4 --host 0.0.0.0 --port 30000 --served-name glm-5.3-flash`
@@ -41,9 +41,11 @@
 - Reference result (EPYC 7443P, 8ch DDR4, PCIe 4.0 x16, 990 Pro; protocol sweep `--template glm --prefill 8192 32768
   --conc 1 2 4`): prefill 8k 710 / 32k 951 tok/s; decode 1 user 28.15, 2 users 31.57, 4 users 33.98 tok/s aggregate,
   1 user at 32k context 26.89. Exact mode (G066a): prefill 697 / 945, decode ~12.6 at 1-4 users.
-- Image smoke of this digest (clean pull, README command, same host): panel 1.0000 / 0; prefill 707 / 953; decode
-  29.03 / 31.38 / 34.88 aggregate, 27.85 at 32k. After a very long prompt the first ~30 s of decode run at about half
-  speed while the expert cache re-warms (lab speed gate right after a 93k-token prompt: 14.4 tok/s).
+- Image smoke of the previous digest 1159044a (repo c4b9160; this digest differs only in the SSE streaming loop; clean
+  pull, README command, same host): panel 1.0000 / 0; prefill 707 / 953; decode 29.03 / 31.38 / 34.88 aggregate, 27.85
+  at 32k. Its streams arrived at ~half the generation rate with the backlog flushed at the end (the server awaited a
+  client-disconnect check after every SSE event; lab speed gate 14.4 tok/s). Fixed in repo `fe97bcf` (disconnect
+  polled by a side task every 0.1 s); streaming smoke of this digest pending.
 
 ## Quality band (reference panel `reference/glm-5.3-flash-exl3-ref-panel.json`, `tools/score_ref_panel.py`)
 - Teacher-forced panel (8 prompts, 2,154 positions; prefill path) in both modes: **top-1 1.0000, mean KL 0**
