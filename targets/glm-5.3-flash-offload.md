@@ -41,6 +41,9 @@
 - Reference result (EPYC 7443P, 8ch DDR4, PCIe 4.0 x16, 990 Pro; protocol sweep `--template glm --prefill 8192 32768
   --conc 1 2 4`): prefill 8k 710 / 32k 951 tok/s; decode 1 user 28.15, 2 users 31.57, 4 users 33.98 tok/s aggregate,
   1 user at 32k context 26.89. Exact mode (G066a): prefill 697 / 945, decode ~12.6 at 1-4 users.
+- Image smoke of this digest (clean pull, README command, same host): panel 1.0000 / 0; prefill 707 / 953; decode
+  29.03 / 31.38 / 34.88 aggregate, 27.85 at 32k. After a very long prompt the first ~30 s of decode run at about half
+  speed while the expert cache re-warms (lab speed gate right after a 93k-token prompt: 14.4 tok/s).
 
 ## Quality band (reference panel `reference/glm-5.3-flash-exl3-ref-panel.json`, `tools/score_ref_panel.py`)
 - Teacher-forced panel (8 prompts, 2,154 positions; prefill path) in both modes: **top-1 1.0000, mean KL 0**
