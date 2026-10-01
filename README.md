@@ -9,6 +9,12 @@ intake: raw, measured submissions live here so the registry stays small and revi
 experts in system RAM, n-gram table on NVMe. See [`targets/qwen3.8-flash-next-offload.md`](targets/qwen3.8-flash-next-offload.md)
 for what it needs (VRAM, free RAM, NVMe space) and the known-good configs (RTX 3090, Arc Pro B70).
 
+**Second target:** GLM-5.3-Flash (EXL3 3.05 bpw, 125 GB) on one 24 GB GPU — every routed expert in system RAM
+(~218 GiB free RAM), an elastic GPU expert cache and an AVX2 CPU tier for cold decode misses
+([glm53-flash-offload](https://github.com/0xSero/glm53-flash-offload)). See
+[`targets/glm-5.3-flash-offload.md`](targets/glm-5.3-flash-offload.md); registry recipe
+[`rtx-3090-24gb/glm-5.3-flash.exllamav3.128k`](https://github.com/0xSero/local-ai-registry/blob/main/registry/recipes/nvidia/rtx-3090-24gb/glm-5.3-flash.exllamav3.128k.json).
+
 ## How to contribute a result
 1. Check the target's **Needs** table against your machine: `python3 tools/probe.py --models-dir ~/models`.
 2. Open your coding agent on that machine in a clone of this repo and give it [`PROMPT.md`](PROMPT.md).
@@ -30,7 +36,7 @@ for what it needs (VRAM, free RAM, NVMe space) and the known-good configs (RTX 3
 | `tools/sweep.py` | the speed protocol |
 | `tools/score_ref_panel.py`, `tools/needle.py` | quality vs the exllamav3 reference; long-context needle |
 | `tools/make_submission.py`, `tools/validate.py` | build and check a submission (CI runs the validator) |
-| `reference/` | reference panel (teacher-forced top-20 logprobs from exllamav3) and best-known speeds per card |
+| `reference/` | reference panels per target (teacher-forced top-20 logprobs from exllamav3) and best-known speeds per card (`<card>/<target>` keys for non-Qwen targets) |
 | `submissions/<card id>/` | one JSON per measured run |
 
 ## Rules that keep submissions comparable

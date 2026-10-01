@@ -14,5 +14,11 @@
   "prefill_65536": 603.6,
   "decode_C1": 32.83
  },
- "_note": "medians from the maintainers' protocol sweeps (2026-09-29, omarchy: EPYC 7443P, PCIe 4.0 x16, Samsung 990 Pro). Early exit = < 95 % of these for the same card."
+ "rtx-3090-24gb/glm-5.3-flash-offload": {
+  "prefill_8192": 709.7,
+  "prefill_32768": 950.8,
+  "decode_C1": 28.15,
+  "decode_C4": 33.98
+ },
+ "_note": "medians from the maintainers' protocol sweeps (2026-09-29, omarchy: EPYC 7443P, PCIe 4.0 x16, Samsung 990 Pro). Early exit = < 95 % of these for the same card. Keys are card ids for the Qwen3.8-Flash-Next target and <card>/<target> for other targets (GLM-5.3-Flash: campaign run G067, 2026-10-01)."
 }

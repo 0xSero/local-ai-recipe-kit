@@ -5,6 +5,9 @@ import glob, json, os, re, sys
 
 TARGETS = {os.path.splitext(f)[0] for f in os.listdir(os.path.join(os.path.dirname(__file__), "..", "targets"))}
 DIGEST = re.compile(r"^[^\s@]+@sha256:[0-9a-f]{64}$")
+# prefill sizes a DONE sweep must contain, per target (the GLM target's protocol is 8k + 32k)
+PREFILL = {"glm-5.3-flash-offload": ("8192", "32768")}
+DEFAULT_PREFILL = ("8192", "16384", "32768")
 
 
 def check(path):
@@ -38,7 +41,7 @@ def check(path):
     sp = s.get("speed") or {}
     if sp.get("status") not in ("DONE",) and not str(sp.get("status", "")).startswith("EARLY_EXIT"):
         errs.append("speed.status must be DONE or EARLY_EXIT… (run tools/sweep.py)")
-    for n in ("8192", "16384", "32768"):
+    for n in PREFILL.get(s.get("target"), DEFAULT_PREFILL):
         if n not in (sp.get("prefill") or {}):
             errs.append(f"speed.prefill missing {n}")
     if "C1" not in (sp.get("decode") or {}) and sp.get("status") == "DONE":
