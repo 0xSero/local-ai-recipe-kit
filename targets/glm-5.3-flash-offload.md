@@ -45,7 +45,11 @@
   pull, README command, same host): panel 1.0000 / 0; prefill 707 / 953; decode 29.03 / 31.38 / 34.88 aggregate, 27.85
   at 32k. Its streams arrived at ~half the generation rate with the backlog flushed at the end (the server awaited a
   client-disconnect check after every SSE event; lab speed gate 14.4 tok/s). Fixed in repo `fe97bcf` (disconnect
-  polled by a side task every 0.1 s); streaming smoke of this digest pending.
+  polled by a side task every 0.1 s).
+- Image smoke of this digest (P002b, README command, the host's one remaining RTX 3090, which also drives the display:
+  ~1 GB less free VRAM): panel 1.0000 / 0; prefill 700.2 / 958.0; decode 28.88 / 31.27 / 35.00 aggregate, 27.56 at 32k.
+  Streaming delivery after 512- and 32k-token prompts (client-side SSE timestamps, 10-s bins): 28.65-28.98 tok/s per
+  answer, bins 26.4-30.4, no end-of-answer flush. Registry lab gates: all six pass (speed 28.8 tok/s).
 
 ## Quality band (reference panel `reference/glm-5.3-flash-exl3-ref-panel.json`, `tools/score_ref_panel.py`)
 - Teacher-forced panel (8 prompts, 2,154 positions; prefill path) in both modes: **top-1 1.0000, mean KL 0**
